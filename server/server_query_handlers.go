@@ -108,6 +108,9 @@ func (s *Server) parseQuery(table *core.Table, params map[string]interface{}) (*
 		if q, err = query.NewParser().ParseString(str); err != nil {
 			return nil, err
 		}
+		if _, ok := params["prefix"]; ok {
+			q.Prefix = params["prefix"].(string)
+		}
 	} else if obj, ok := raw.(map[string]interface{}); ok {
 		q = query.NewQuery()
 		if err = q.Deserialize(obj); err != nil {
