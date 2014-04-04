@@ -1,0 +1,8 @@
+#!/bin/bash
+source script/env
+set -xe
+go get -d ./...
+if [ ! -f REVISION ]; then
+  echo `git rev-parse --short HEAD` > REVISION
+fi
+go build -a -o $GOBIN/skyd-`cat REVISION`

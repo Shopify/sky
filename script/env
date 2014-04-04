@@ -1,0 +1,12 @@
+#!/bin/bash
+REPO_OWNER="github.com/skydb"
+APP_NAME="sky"
+APP_REPO="$REPO_OWNER/$APP_NAME"
+export GOPATH=$(pwd)/.go
+export GOBIN=$GOPATH/bin
+echo "GOPATH = $GOPATH, GOBIN = $GOBIN"
+mkdir -p $GOBIN
+mkdir -p $GOPATH/src/$REPO_OWNER
+if [ ! -d $GOPATH/src/$APP_REPO ]; then
+  ln -sfv $(pwd) $GOPATH/src/$APP_REPO
+fi

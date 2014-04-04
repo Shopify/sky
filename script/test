@@ -1,0 +1,5 @@
+#!/bin/bash
+source script/env
+set -xe
+go test ./... -i
+go test ./...

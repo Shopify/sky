@@ -21,3 +21,5 @@ Vagrantfile
 .vagrant
 sky
 sky-go
+REVISION
+/.go/
