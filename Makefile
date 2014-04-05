@@ -12,8 +12,7 @@ REPO_OWNER=github.com/skydb
 APP_NAME=sky
 APP_REPO=$(REPO_OWNER)/$(APP_NAME)
 CWD=$(shell pwd)
-export GOPATH=$(CWD)/.go
-export GOBIN=$(CWD)/.go/bin
+export GOBIN=$(GOPATH)/bin
 
 default: build
 
