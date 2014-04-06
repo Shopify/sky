@@ -130,7 +130,7 @@ func (t *Table) _open() error {
 	assert(err == nil, "max dbs (%d) error: %s", t.maxDBs, err)
 	err = env.SetMaxReaders(t.maxReaders)
 	assert(err == nil, "max readers (%d) error: %s", t.maxReaders, err)
-	err = env.SetMapSize(1 << 36)
+	err = env.SetMapSize(1 << 38)
 	assert(err == nil, "map size error: %s", err)
 
 	// Set LMDB flags.
