@@ -50,6 +50,8 @@ func TestServerSimpleCountQuery(t *testing.T) {
 		setupTestProperty("bar", "fruit", true, "string")
 		setupTestData(t, "bar", [][]string{
 			[]string{"xx", "2012-01-01T00:00:00Z", `{"data":{"fruit":"grape"}}`},
+			[]string{"xy", "2012-01-01T00:00:00Z", `{"data":{"fruit":"grape"}}`},
+			[]string{"xz", "2012-01-01T00:00:00Z", `{"data":{"fruit":"grape"}}`},
 		})
 
 		// Run query.
@@ -58,7 +60,7 @@ func TestServerSimpleCountQuery(t *testing.T) {
 		//resp, _ := sendTestHttpRequest("POST", "http://localhost:8586/tables/foo/query", "application/json", query)
 		//assertResponse(t, resp, 200, `{"count":5}`+"\n", "POST /tables/:name/query failed.")
 		resp, _ := sendTestHttpRequest("POST", "http://localhost:8586/tables/bar/query?prefix=x", "application/json", query)
-		assertResponse(t, resp, 200, `{"count":1}`+"\n", "POST /tables/:name/query failed.")
+		assertResponse(t, resp, 200, `{"count":3}`+"\n", "POST /tables/:name/query failed.")
 	})
 }
 
