@@ -722,7 +722,13 @@ bool sky_cursor_iter_object(sky_cursor *cursor, bolt_val *key, bolt_val *data)
 
     // Extract the bucket from the object cursor and init event cursor.
     bucket *b = (bucket*)data->data;
-    bolt_cursor_init(&cursor->event_cursor, cursor->object_cursor.data, cursor->object_cursor.pgsz, b->root);
+    void *ptr_value = cursor->object_cursor.data;
+    if (b->root == 0) {
+        // For inline buckets, we need to pass a pointer to the byte
+        // immediately following the bucket header in the value:
+        ptr_value += sizeof(pgid);
+    }
+    bolt_cursor_init(&cursor->event_cursor, ptr_value, cursor->object_cursor.pgsz, b->root);
 
     // Read the first event into the cursor buffer.
     uint32_t flags;
@@ -1137,6 +1143,9 @@ func (e *ExecutionEngine) SetBucket(b *bolt.Bucket) {
 	defer e.mutex.Unlock()
 
 	info := b.Tx().DB().Info()
+
+	// TODO: inline bucket support: pass in a pointer to the byte immediately following the bucket header in the value
+
 	C.bolt_cursor_init(&e.cursor.object_cursor, unsafe.Pointer(&info.Data[0]), C.size_t(info.PageSize), C.pgid(b.Root()))
 }
 
