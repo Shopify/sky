@@ -708,17 +708,20 @@ void sky_cursor_set_property(sky_cursor *cursor, int64_t property_id,
 // Sets up object after cursor has already been positioned.
 bool sky_cursor_iter_object(sky_cursor *cursor, bolt_val *key, bolt_val *data)
 {
+    fprintf(stderr, "\nHAIIIIIIIIIIIIIIII\n");
 
     if(cursor->key_prefix != NULL && (key->size < cursor->key_prefix_sz || memcmp(cursor->key_prefix, key->data, cursor->key_prefix_sz) != 0)) {
         return false;
     }
     // fprintf(stderr, "\nOBJ (%.*s) [%d]\n", (int)key->mv_size, (char*)key->mv_data, (int)key->mv_size);
+    fprintf(stderr, "\nHAIIIIIIIIIIIIIIII22222\n");
 
     // Clear the data object if set.
     cursor->session_idle_in_sec = 0;
     cursor->eos_wait = false;
     cursor->next_event->eof = false;
     memset(cursor->event, 0, cursor->event_sz);
+    fprintf(stderr, "\nHAIIIIIIIIIIIIIIII222222\n");
 
     // Extract the bucket from the object cursor and init event cursor.
     bucket *b = (bucket*)data->data;
@@ -726,9 +729,11 @@ bool sky_cursor_iter_object(sky_cursor *cursor, bolt_val *key, bolt_val *data)
     if (b->root == 0) {
         // For inline buckets, we need to pass a pointer to the byte
         // immediately following the bucket header in the value:
-        ptr_value += sizeof(pgid);
+        ptr_value += sizeof(pgid)+1;
     }
+    fprintf(stderr, "\nHAIIIIIIIIIIIIIIII333333\n");
     bolt_cursor_init(&cursor->event_cursor, ptr_value, cursor->object_cursor.pgsz, b->root);
+    fprintf(stderr, "\nHAIIIIIIIIIIIIIIII444444\n");
 
     // Read the first event into the cursor buffer.
     uint32_t flags;
@@ -1144,9 +1149,16 @@ func (e *ExecutionEngine) SetBucket(b *bolt.Bucket) {
 
 	info := b.Tx().DB().Info()
 
-	// TODO: inline bucket support: pass in a pointer to the byte immediately following the bucket header in the value
+	ptrValue := unsafe.Pointer(&info.Data[0])
+	fmt.Println("SetBucket: ", info.Data[0])
+	if b.Root() == 0 {
+		// For inline buckets, we need to pass a pointer to the byte
+		// immediately following the bucket header in the value
+		fmt.Println("SetBucket(2): ", info.Data[0], info.Data[1], info.Data[2], info.Data[3], info.Data[4], info.Data[5], info.Data[6], info.Data[7], info.Data[8])
+		ptrValue = unsafe.Pointer(&info.Data[8])
+	}
 
-	C.bolt_cursor_init(&e.cursor.object_cursor, unsafe.Pointer(&info.Data[0]), C.size_t(info.PageSize), C.pgid(b.Root()))
+	C.bolt_cursor_init(&e.cursor.object_cursor, ptrValue, C.size_t(info.PageSize), C.pgid(b.Root()))
 }
 
 //------------------------------------------------------------------------------
