@@ -722,7 +722,7 @@ bool sky_cursor_iter_object(sky_cursor *cursor, bolt_val *key, bolt_val *data)
 
     // Extract the bucket from the object cursor and init event cursor.
     bucket *b = (bucket*)data->data;
-    bolt_cursor_init(&cursor->event_cursor, cursor->object_cursor.data, cursor->object_cursor.pgsz, b->root);
+    bolt_cursor_init(&cursor->event_cursor, cursor->object_cursor.data+16, cursor->object_cursor.pgsz, b->root);
 
     // Read the first event into the cursor buffer.
     uint32_t flags;
