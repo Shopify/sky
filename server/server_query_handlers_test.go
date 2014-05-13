@@ -78,7 +78,7 @@ func TestServerTimestampRangeQuery(t *testing.T) {
 
 		// Run query.
 		query := `{"query":{"statements":"SELECT sum(num) AS total"}}`
-		resp, _ := sendTestHttpRequest("POST", "http://localhost:8586/tables/foo/query?prefix=a&minTimestamp=2012-01-02T00:00:00Z&maxTimestamp=2012-01-03T00:00:00Z", "application/json", query)
+		resp, _ := sendTestHttpRequest("POST", "http://localhost:8586/tables/foo/query?prefix=a&start=2012-01-02T00:00:00Z&end=2012-01-03T00:00:00Z", "application/json", query)
 		assertResponse(t, resp, 200, `{"total":4320}`+"\n", "POST /tables/:name/query failed.")
 	})
 }
