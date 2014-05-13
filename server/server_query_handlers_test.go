@@ -557,6 +557,6 @@ func TestServerStatsQuery(t *testing.T) {
 		})
 
 		resp, _ := sendTestHttpRequest("GET", "http://localhost:8586/tables/foo/stats?prefix=001", "application/json", "")
-		assertResponse(t, resp, 200, `{"count":3}`+"\n", "POST /tables/:name/query failed.")
+		assertResponse(t, resp, 200, `{"branchPages":0,"branchOverflow":0,"leafPages":22,"leafOverflow":0,"keyCount":12,"depth":2,"branchAlloc":0,"branchInuse":0,"leafAlloc":90112,"leafInuse":737}`+"\n", "POST /tables/:name/query failed.")
 	})
 }

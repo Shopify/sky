@@ -51,11 +51,6 @@ type TableStats struct {
 	BranchInUse     int `json:"branchInuse"`
 	LeafAllocated   int `json:"leafAlloc"`
 	LeafInUse       int `json:"leafInuse"`
-
-	// Bucket statistics
-	Buckets           int `json:"buckets"`
-	InlineBuckets     int `json:"inlineBuckets"`
-	InlineBucketInUse int `json:"inlineBucketInuse"`
 }
 
 // Table represents a collection of objects.
@@ -97,9 +92,6 @@ func (t *Table) Stats() (*TableStats, error) {
 		stats.BranchInUse = s.BranchInuse
 		stats.LeafAllocated = s.LeafAlloc
 		stats.LeafInUse = s.LeafInuse
-		stats.Buckets = s.BucketN
-		stats.InlineBuckets = s.InlineBucketN
-		stats.InlineBucketInUse = s.InlineBucketInuse
 
 		return nil
 	})
