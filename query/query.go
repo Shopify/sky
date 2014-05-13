@@ -7,13 +7,16 @@ import (
 	"io"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/skydb/sky/db"
 )
 
 // A Query is a structured way of aggregating data in the database.
 type Query struct {
-	Tx *db.Tx
+	Tx           *db.Tx
+	MinTimestamp time.Time
+	MaxTimestamp time.Time
 
 	source            string
 	refs              []*VarRef

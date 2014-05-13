@@ -439,6 +439,9 @@ struct sky_cursor {
     uint32_t key_prefix_sz;
     bolt_cursor object_cursor;
     bolt_cursor event_cursor;
+
+    bolt_val min_event_key;
+    bolt_val max_event_key;
 };
 
 //==============================================================================
@@ -613,6 +616,14 @@ void sky_cursor_free(sky_cursor *cursor)
         if(cursor->key_prefix != NULL) free(cursor->key_prefix);
         cursor->key_prefix = NULL;
 
+        if(cursor->min_event_key.data != NULL) free(cursor->min_event_key.data);
+        cursor->min_event_key.data = NULL;
+        cursor->min_event_key.size = 0;
+
+        if(cursor->max_event_key.data != NULL) free(cursor->max_event_key.data);
+        cursor->max_event_key.data = NULL;
+        cursor->max_event_key.size = 0;
+
         free(cursor);
     }
 }
@@ -727,7 +738,12 @@ bool sky_cursor_iter_object(sky_cursor *cursor, bolt_val *key, bolt_val *data)
     // Read the first event into the cursor buffer.
     uint32_t flags;
     bolt_val event_key, event_data;
-    bolt_cursor_first(&cursor->event_cursor, &event_key, &event_data, &flags);
+    bolt_cursor_seek(&cursor->event_cursor, cursor->min_event_key, &event_key, &event_data, &flags);
+
+    // Make sure the first event is not past the timestamp range.
+    if(cursor->max_event_key.size > 0 && memcmp(event_key.data, cursor->max_event_key.data, cursor->max_event_key.size) > 0) {
+        return false;
+    }
 
     if(!sky_cursor_read(cursor, cursor->next_event, event_data.data)) {
         return false;
@@ -801,8 +817,10 @@ bool sky_cursor_next_event(sky_cursor *cursor)
         uint32_t flags;
         bolt_val key, data;
         bolt_cursor_next(&cursor->event_cursor, &key, &data, &flags);
-        if(key.size == 0) {
-            // Clear next event if there isn't one.
+
+        // Clear next event if there isn't one or if the next timestamp is
+        // beyond our max event key.
+        if(key.size == 0 || (cursor->max_event_key.size > 0 && memcmp(key.data, cursor->max_event_key.data, cursor->max_event_key.size) > 0)) {
             memset(cursor->next_event, 0, cursor->event_sz);
             cursor->next_event->eof = true;
         } else {
@@ -1220,6 +1238,22 @@ func (e *ExecutionEngine) initCursor() error {
 	if rc := C.lua_pcall(e.state, 1, 0, 0); rc != 0 {
 		luaErrString := C.GoString(C.lua_tolstring(e.state, -1, nil))
 		return fmt.Errorf("Unable to init cursor: %s", luaErrString)
+	}
+
+	// Set the minimum timestamps.
+	if !e.query.MinTimestamp.IsZero() {
+		b := db.ShiftTimeBytes(e.query.MinTimestamp)
+		e.cursor.min_event_key.size = C.uint32_t(len(b))
+		e.cursor.min_event_key.data = C.malloc(C.size_t(len(b)))
+		C.memmove(e.cursor.min_event_key.data, unsafe.Pointer(&b[0]), C.size_t(len(b)))
+	}
+
+	// Set the maximum timestamps.
+	if !e.query.MaxTimestamp.IsZero() {
+		b := db.ShiftTimeBytes(e.query.MaxTimestamp)
+		e.cursor.max_event_key.size = C.uint32_t(len(b))
+		e.cursor.max_event_key.data = C.malloc(C.size_t(len(b)))
+		C.memmove(e.cursor.max_event_key.data, unsafe.Pointer(&b[0]), C.size_t(len(b)))
 	}
 
 	return nil

@@ -39,6 +39,20 @@ func (s *Server) queryHandler(w http.ResponseWriter, req *http.Request, params m
 			q.Prefix = prefix
 		}
 
+		if req.FormValue("minTimestamp") != "" {
+			q.MinTimestamp, err = db.ParseTime(req.FormValue("minTimestamp"))
+			if err != nil {
+				return err
+			}
+		}
+
+		if req.FormValue("maxTimestamp") != "" {
+			q.MaxTimestamp, err = db.ParseTime(req.FormValue("maxTimestamp"))
+			if err != nil {
+				return err
+			}
+		}
+
 		results, err = s.RunQuery(tx, q)
 		return err
 	})

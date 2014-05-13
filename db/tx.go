@@ -193,7 +193,7 @@ func (tx *Tx) Event(id string, timestamp time.Time) (*Event, error) {
 		return nil, fmt.Errorf("table not open: %s", tx.Table.name)
 	}
 
-	rawEvent, err := tx.getRawEvent(id, shiftTime(timestamp))
+	rawEvent, err := tx.getRawEvent(id, ShiftTime(timestamp))
 	if err != nil {
 		return nil, err
 	} else if rawEvent == nil {
@@ -400,7 +400,7 @@ func (tx *Tx) DeleteEvent(id string, timestamp time.Time) error {
 	// Create the timestamp prefix.
 	var stat = bench()
 	var key = make([]byte, 8)
-	binary.BigEndian.PutUint64(key, uint64(shiftTime(timestamp)))
+	binary.BigEndian.PutUint64(key, uint64(ShiftTime(timestamp)))
 
 	// Delete the event.
 	if err := b.Delete(key); err != nil {
@@ -556,7 +556,7 @@ func (tx *Tx) defactorize(propertyID int, index int) (string, error) {
 // toRawEvent returns a raw event representation of this event.
 func (tx *Tx) toRawEvent(e *Event) (*rawEvent, error) {
 	rawEvent := &rawEvent{
-		timestamp: shiftTime(e.Timestamp),
+		timestamp: ShiftTime(e.Timestamp),
 		data:      make(map[int]interface{}),
 	}
 
@@ -588,7 +588,7 @@ func (tx *Tx) toRawEvent(e *Event) (*rawEvent, error) {
 // toEvent returns an normal event representation of this raw event.
 func (tx *Tx) toEvent(e *rawEvent) (*Event, error) {
 	event := &Event{
-		Timestamp: unshiftTime(e.timestamp),
+		Timestamp: UnshiftTime(e.timestamp),
 		Data:      make(map[string]interface{}),
 	}
 

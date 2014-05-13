@@ -62,6 +62,27 @@ func TestServerSimpleCountQuery(t *testing.T) {
 	})
 }
 
+// Ensure that we can restrict a query to a given timestamp range.
+func TestServerTimestampRangeQuery(t *testing.T) {
+	runTestServer(func(s *Server) {
+		setupTestTable("foo")
+		setupTestProperty("foo", "num", true, "integer")
+		setupTestData(t, "foo", [][]string{
+			[]string{"a0", "2012-01-01T00:00:00Z", `{"data":{"num":1}}`},
+			[]string{"a0", "2012-01-02T00:00:00Z", `{"data":{"num":20}}`},
+			[]string{"a0", "2012-01-03T00:00:00Z", `{"data":{"num":300}}`},
+			[]string{"a1", "2012-01-03T00:00:00Z", `{"data":{"num":4000}}`},
+			[]string{"a1", "2012-01-03T00:00:01Z", `{"data":{"num":50000}}`},
+			[]string{"a1", "2012-01-04T00:00:00Z", `{"data":{"num":600000}}`},
+		})
+
+		// Run query.
+		query := `{"query":{"statements":"SELECT sum(num) AS total"}}`
+		resp, _ := sendTestHttpRequest("POST", "http://localhost:8586/tables/foo/query?prefix=a&minTimestamp=2012-01-02T00:00:00Z&maxTimestamp=2012-01-03T00:00:00Z", "application/json", query)
+		assertResponse(t, resp, 200, `{"total":4320}`+"\n", "POST /tables/:name/query failed.")
+	})
+}
+
 // Ensure that we can query the server for a count of events.
 func TestServerSimpleCountQueryWithPrefixInBody(t *testing.T) {
 	runTestServer(func(s *Server) {
